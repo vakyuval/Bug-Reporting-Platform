@@ -1,0 +1,3 @@
+This is a placeholder attachment file for demo purposes.
+
+In a real implementation, uploaded files would be stored here.
