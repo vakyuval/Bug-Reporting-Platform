@@ -3,19 +3,11 @@ import { Navigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { CreateReportPayload } from '../types/Report';
 import { useAuth } from '../context/AuthContext';
+import { validateEmail } from './LoginPage';
 
 const ISSUE_TYPES = ['Bug', 'Feature Request', 'Improvement', 'Documentation', 'Other'];
 const ALLOWED_FILE_TYPES = ['image/png', 'image/jpeg', 'application/pdf'];
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
-
-
-function validateEmail(value: string): string[] {
-  const issues: string[] = [];
-  if (!value.includes('@') || !value.includes('.')) {
-    issues.push('Must be a valid email address');
-  }
-  return issues;
-}
 
 
 export function ReportPage() {

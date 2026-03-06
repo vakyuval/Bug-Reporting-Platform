@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
+export function validateEmail(value: string){ 
+  return (value.includes('@') && value.includes('.'));
+}
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -21,7 +24,10 @@ export function LoginPage() {
       setError('Please enter your email');
       return;
     }
-
+    if (!validateEmail){
+      setError('no valid email');
+      return;
+    }
     setIsLoading(true);   // show loading state
     setError(null);       // clear any previous error
 
@@ -41,12 +47,12 @@ export function LoginPage() {
       if (result.status === 'admin') {
         navigate('/reports');
       } else {
-        navigate('/report');
+        navigate('/my-reports');
       }
 
     } catch (err) {
       // This runs if the server is down or returns an error
-      setError('Something went wrong. Please try again.');
+      setError('Login failed. Please try again.');
     } finally {
       // This ALWAYS runs — whether success or error
       setIsLoading(false);
@@ -75,6 +81,7 @@ export function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
+            required
           />
         </div>
 
