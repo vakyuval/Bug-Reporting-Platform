@@ -1,61 +1,109 @@
 import { useState, FormEvent } from 'react';
+import { Navigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { CreateReportPayload } from '../types/Report';
+import { useAuth } from '../context/AuthContext';
 
-function validateField(value: string): string[] {
+const ISSUE_TYPES = ['Bug', 'Feature Request', 'Improvement', 'Documentation', 'Other'];
+const ALLOWED_FILE_TYPES = ['image/png', 'image/jpeg', 'application/pdf'];
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+
+function validateEmail(value: string): string[] {
   const issues: string[] = [];
-
-  const largeArray = Array.from({ length: 10000 }, (_, i) => `item-${i}-${value}`);
-
-  for (let i = 0; i < 100; i++) {
-    largeArray.sort(() => Math.random() - 0.5);
-    largeArray.filter(item => item.includes(value.slice(0, 3)));
-    largeArray.map(item => item.toUpperCase().toLowerCase());
+  if (!value.includes('@') || !value.includes('.')) {
+    issues.push('Must be a valid email address');
   }
-
-  if (value.length < 3) {
-    issues.push('Must be at least 3 characters');
-  }
-
   return issues;
 }
 
+
 export function ReportPage() {
+  const { userEmail } = useAuth();
+  // return to login if not connected
+  if (!userEmail){
+    return <Navigate to="/login" replace />;
+  }
+
+  // Form fields that user should provide
   const [issueType, setIssueType] = useState('');
   const [description, setDescription] = useState('');
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
+  const [attachment, setAttachment] = useState<File | null>(null);
+  // UI states
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [attachmentError, setAttachmentError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [screenshotPreview, setScreenshotPreview] = useState('');
+  const [capturingScreenshot, setCapturingScreenshot] = useState(false);
 
-  const descriptionValidation = validateField(description);
-  const nameValidation = validateField(contactName);
+  // checking all fields before submiting the report
+  const errors: Record<string, string> = {};
+  if (touched.issueType && !issueType) errors.issueType = 'Please select an issue type.';
+  if (touched.description && description.trim().length < 10) errors.description = 'Must be at least 10 characters.';
+  if (touched.contactName && contactName.trim().length < 3) errors.contactName = 'Must be at least 3 characters.';
+  if (touched.contactEmail && !validateEmail(contactEmail)) errors.contactEmail = 'Please enter a valid email.';
+
+  const touch = (field: string) => setTouched(t => ({ ...t, [field]: true }));
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    if (!file) { setAttachment(null); setAttachmentError(''); return; }
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      setAttachmentError('Only PNG, JPG, and PDF files are allowed.');
+      setAttachment(null); e.target.value = '';
+    } else if (file.size > MAX_FILE_SIZE) {
+      setAttachmentError('File must be under 5MB.');
+      setAttachment(null); e.target.value = '';
+    } else {
+      setAttachment(file); setAttachmentError('');
+    }
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    const payload: CreateReportPayload = {
-      issueType,
-      description,
-      contactName,
-      contactEmail,
-    };
+    setTouched({ issueType: true, description: true, contactName: true, contactEmail: true });
+    if (!issueType || description.trim().length < 10 || contactName.trim().length < 3 || !validateEmail(contactEmail)) return;
+    setSubmitting(true); setSubmitSuccess(''); setSubmitError('');
 
-      await apiClient.createReport(payload);
-
+    try {
+      const payload: CreateReportPayload = { issueType, description, contactName, contactEmail, attachment: attachment ?? undefined };
+      const report = await apiClient.createReportWithFile(payload);
+      setSubmitSuccess(`Report submitted successfully! ID: ${report.id}`);
+      setIssueType(''); setDescription(''); setContactName(''); setContactEmail(userEmail);
+      setAttachment(null); setTouched({}); setScreenshotPreview('');
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Submission failed.');
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const isDisabled = submitting || !issueType || !description || !contactName || !contactEmail;
+
 
   return (
     <div className="page">
       <h1>Report a Bug</h1>
-
+      {submitSuccess && <div className="alert alert-success">{submitSuccess}</div>}
+      {submitError && <div className="alert alert-error">{submitError}</div>}
       <form onSubmit={handleSubmit} className="form">
         <div className="form-group">
           <label htmlFor="issueType">Issue Type</label>
-          <input
+          <select
             id="issueType"
             value={issueType}
             onChange={(e) => setIssueType(e.target.value)}
-            placeholder="Select issue type (replace with dropdown)"
-          />
+            onBlur={() => touch('issueType')}
+          >
+            <option value="">Select issue type...</option>
+            {ISSUE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          {errors.issueType && <span className="validation-hint" style={{color:'var(--danger)'}}>{errors.issueType}</span>}
         </div>
 
         <div className="form-group">
@@ -66,12 +114,9 @@ export function ReportPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe the issue..."
             rows={5}
+            onBlur={() => touch('description')}
           />
-          {descriptionValidation.length > 0 && (
-            <span className="validation-hint">
-              {descriptionValidation.length} validation checks
-            </span>
-          )}
+          {errors.description && <span className="validation-hint" style={{color:'var(--danger)'}}>{errors.description}</span>}
         </div>
 
         <div className="form-group">
@@ -82,22 +127,22 @@ export function ReportPage() {
             value={contactName}
             onChange={(e) => setContactName(e.target.value)}
             placeholder="Enter your name"
+            onBlur={() => touch('contactName')}
           />
-          {nameValidation.length > 0 && (
-            <span className="validation-hint">
-              {nameValidation.length} validation checks
-            </span>
-          )}
+          {errors.contactName && <span className="validation-hint" style={{color:'var(--danger)'}}>{errors.contactName}</span>}
         </div>
 
         <div className="form-group">
           <label htmlFor="contactEmail">Your Email</label>
           <input
+            type="email"
             id="contactEmail"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
             placeholder="Enter your email"
+            onBlur={() => touch('contactEmail')}
           />
+          {errors.contactEmail && <span className="validation-hint" style={{color:'var(--danger)'}}>{errors.contactEmail}</span>}
         </div>
 
         <div className="form-group">
@@ -105,16 +150,16 @@ export function ReportPage() {
           <input
             type="file"
             id="attachment"
+            accept=".png,.jpg,.jpeg,.pdf"
             disabled
-            title="TODO: Implement file upload"
+            onChange={handleFileChange}
           />
-          <small className="form-hint">
-            TODO: Implement attachment upload (PNG, JPG, PDF, max 5MB)
-          </small>
+          {attachmentError && <span className="validation-hint" style={{color:'var(--danger)'}}>{attachmentError}</span>}
+          <small className="form-hint">PNG, JPG, or PDF — max 5MB</small>
         </div>
 
-        <button type="submit" className="btn btn-primary">
-          Submit Report
+        <button type="submit" className="btn btn-primary" disabled={isDisabled}>
+          {submitting ? 'Submitting...' : 'Submit Report'}
         </button>
       </form>
     </div>
