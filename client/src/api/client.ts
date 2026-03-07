@@ -86,6 +86,29 @@ class ApiClient {
     });
   }
 
+  async getReportById(id: string): Promise<Report>{
+    const response = await fetch(`${API_BASE_URL}/api/reports/${id}`);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.error || 'Failed to fetch report details');
+    }
+
+    return response.json();
+
+  }
+
+  async deleteReport(id: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/api/reports/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.error || 'Failed to delete report');
+    }
+  }
+
 
 }
 

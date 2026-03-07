@@ -19,6 +19,7 @@ export function MyReportsPage(){
   const [ reports, setReports] = useState<Report[]>([]);
   const [loading, setLoadig] = useState(true);
   const [error, setError] = useState('');
+  const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
   const fetchReports = useCallback(async () => {
     setLoadig(true);
@@ -35,6 +36,26 @@ export function MyReportsPage(){
   }, [userEmail]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+
+    const confirmed = window.confirm('Are you sure you want to delete this report?');
+    if (!confirmed) return;
+
+    try {
+      setDeleteLoadingId(id);
+
+      // make sure this exists in apiClient + backend
+      await apiClient.deleteReport(id);
+
+      setReports((prev) => prev.filter((report) => report.id !== id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete report.');
+    } finally {
+      setDeleteLoadingId(null);
+    }
+  };
 
   if (loading) return <div className="page"><p>Loading your reports...</p></div>;
   if (error) return (
@@ -63,17 +84,54 @@ export function MyReportsPage(){
               <th style={{padding:'8px'}}>Status</th>
               <th style={{padding:'8px'}}>Created</th>
               <th style={{padding:'8px'}}>Approved</th>
+              <th style={{padding:'8px'}}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {reports.map(r => (
-              <tr key={r.id} style={{ borderBottom: '1px solid var(--border)' }}>
+              <tr
+                key={r.id}
+                onClick={() => navigate(`/my-reports/${r.id}`)}
+                style={{
+                  borderBottom: '1px solid var(--border)',
+                  cursor: 'pointer',
+                }}
+              >
                 <td data-label="ID" style={{padding:'8px', fontFamily:'monospace', fontSize:'0.8rem'}}>{r.id.slice(0,8)}...</td>
                 <td data-label="Type" style={{padding:'8px'}}>{r.issueType}</td>
                 <td data-label="Description" style={{padding:'8px'}}>{r.description.length > 80 ? r.description.slice(0,80) + '...' : r.description}</td>
                 <td data-label="Status" style={{padding:'8px'}}><span style={badgeStyle[r.status]}>{r.status}</span></td>
-                <td data-label="Created" style={{padding:'8px'}}>{new Date(r.createdAt).toLocaleDateString()}</td>
-                <td data-label="Approved" style={{padding:'8px'}}>{r.approvedAt ? new Date(r.approvedAt).toLocaleDateString() : '—'}</td>
+                <td data-label="CreatedAt" style={{padding:'8px'}}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td data-label="ApprovedAt" style={{padding:'8px'}}>{r.approvedAt ? new Date(r.approvedAt).toLocaleDateString() : '—'}</td>
+                <td data-label="Actions" style={{padding:'8px', display:'flex', gap:'4px', flexWrap:'wrap'}}>
+                  {r.status === 'NEW' && (
+                    <>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.8rem', padding: '4px 10px' }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/my-reports/${r.id}`);
+                      }}
+                    >
+                      View
+                    </button>
+
+                    <button
+                      className="btn btn-secondary"
+                      style={{
+                        fontSize: '0.8rem',
+                        padding: '4px 10px',
+                        background: 'var(--danger)',
+                      }}
+                      onClick={(e) => handleDelete(e, r.id)}
+                      disabled={deleteLoadingId === r.id}
+                    >
+                      {deleteLoadingId === r.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

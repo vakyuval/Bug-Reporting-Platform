@@ -1,57 +1,118 @@
-import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { ReportPage } from './pages/ReportPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { MyReportsPage } from './pages/MyReportsPage';
+import { ReportDetailsPage } from './pages/ReportDetailsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { useState, useEffect } from 'react';
+import { LandingPage } from './pages/LandingPage'
 import './App.css';
 
 function AppLayout() {
-  const { isAdmin, userStatus } = useAuth();
+  const { userStatus, logout, userEmail } = useAuth();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const handleLogout = () => {
+    logout();
+    setMenuOpen(false);
+    navigate('/login');
+  };
+  // Dark mode — read saved preference from localStorage on first load
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('darkMode') === 'true';
+  });
 
+  // Apply/remove 'dark' class on <body> whenever darkMode changes
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', String(darkMode));
+  }, [darkMode]);
 
+ 
+
+    
   return (
-    <div className="app">
-      <nav className="nav">
-        <div className="nav-brand">🐛 Bug Reporter</div>
-        <ul className="nav-links">
-          <li>
-          <NavLink to="/login">Login</NavLink>
-          </li>
-          {/* Only show these links if logged in */}
-          {userStatus && (
-            <li>
-              <NavLink to="/report">Report Bug</NavLink>
-            </li>
+    <nav className={`nav${menuOpen ? ' open' : ''}`}>
+      <div className="nav-brand">🐛 Bug Reporter</div>
+      <button
+        className="nav-toggle"
+        onClick={() => setMenuOpen(o => !o)}
+        aria-label="Toggle navigation"
+      >
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <ul className="nav-links">
+        {!userStatus && (
+        <li>
+          <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Login</NavLink>
+        </li>
+        )}
+        { userStatus && (
+        <>
+          <li><NavLink to="/report" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Report Bug</NavLink></li>
+          {userStatus === 'allowed' && (
+            <li><NavLink to="/my-reports" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>My Reports</NavLink></li>
           )}
-          {/* Only show Reports List to admins */}
-          {isAdmin && (
-            <li>
-              <NavLink to="/reports">Reports List</NavLink>
-            </li>
+          {userStatus === 'admin' && (
+            <li><NavLink to="/reports" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Admin Reports</NavLink></li>
           )}
-        </ul>
-      </nav>
-
-      <main className="main">
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/report" element={<ReportPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
-        </Routes>
-      </main>
+        </>
+      )}
+    </ul>
+    <div className="nav-actions">
+      {/* Dark mode toggle button */}
+      <button
+        className="dark-toggle"
+        onClick={() => setDarkMode(d => !d)}
+        aria-label="Toggle dark mode"
+        title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {darkMode ? '☀️' : '🌙'}
+      </button>
     </div>
+    {userEmail && (
+      <button onClick={handleLogout} className="btn btn-secondary" style={{ marginLeft: 'auto', padding: '0.4rem 1rem' }}>
+        Logout
+      </button>
+    )}
+  </nav>
+    
   );
+}
+
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { userEmail } = useAuth();
+  return userEmail ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
 function App() {
   return (
-    // AuthProvider wraps everything so all pages can access auth
-    <AuthProvider>
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <div className="app">
+          <AppLayout />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+          </Routes>
+          <main className="main">
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
+              <Route path="/my-reports" element={<ProtectedRoute><MyReportsPage /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+              <Route path="/my-reports/:id" element={<ProtectedRoute><ReportDetailsPage /></ProtectedRoute>} />
+            </Routes>
+          </main>
+        </div>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

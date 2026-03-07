@@ -3,8 +3,10 @@ import { useState } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
 
-export function validateEmail(value: string){ 
-  return (value.includes('@') && value.includes('.'));
+export function validateEmail(value: string): boolean {
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(value);
 }
 
 export function LoginPage() {

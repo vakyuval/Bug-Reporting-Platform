@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 import { Report } from '../types/Report';
@@ -21,6 +21,7 @@ export function ReportsPage() {
     return <Navigate to="/my-reports" replace />;
   }
 
+  const navigate = useNavigate();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -120,6 +121,13 @@ export function ReportsPage() {
                 <td data-label="Created" style={{padding:'8px'}}>{new Date(r.createdAt).toLocaleDateString()}</td>
                 <td data-label="Approved" style={{padding:'8px'}}>{r.approvedAt ? new Date(r.approvedAt).toLocaleDateString() : '—'}</td>
                 <td data-label="Actions" style={{padding:'8px', display:'flex', gap:'4px', flexWrap:'wrap'}}>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.8rem', padding: '4px 10px' }}
+                    onClick={() => navigate(`/reports/${r.id}`)}
+                  >
+                    View
+                  </button>
                   {r.status === 'NEW' && (
                     <button
                       className="btn btn-primary"
