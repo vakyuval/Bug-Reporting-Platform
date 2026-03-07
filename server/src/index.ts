@@ -2,7 +2,6 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-
 import router from './routes/router.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +17,7 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 
 // All API routes
 app.use('/api', router);
