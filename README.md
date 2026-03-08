@@ -15,39 +15,6 @@ A full-stack bug reporting and management system built with **React + TypeScript
 | File Upload | multer (PNG / JPG / PDF, max 5MB) |
 ---
 
-## Table of Contents
-
-- [🐛 Bug Reporting Platform - Full-Stack Assignment](#-bug-reporting-platform---full-stack-assignment)
-  - [Tech Stack](#tech-stack)
-  - [| File Upload | multer (PNG / JPG / PDF, max 5MB) |](#-file-upload--multer-png--jpg--pdf-max-5mb-)
-  - [Table of Contents](#table-of-contents)
-  - [Quick Start](#quick-start)
-    - [Prerequisites](#prerequisites)
-    - [1. Clone the repository](#1-clone-the-repository)
-    - [2. Install dependencies](#2-install-dependencies)
-    - [3. Run the app](#3-run-the-app)
-  - [The SQLite database (`server/data/bug-reporter.db`) is created and seeded automatically on first run — no manual setup required.](#the-sqlite-database-serverdatabug-reporterdb-is-created-and-seeded-automatically-on-first-run--no-manual-setup-required)
-  - [Project Structure](#project-structure)
-  - [Seed Accounts](#seed-accounts)
-  - [API Endpoints](#api-endpoints)
-  - [Data Model](#data-model)
-  - [Environment Variables](#environment-variables)
-  - [Features Implemented](#features-implemented)
-    - [Authentication \& Authorization](#authentication--authorization)
-    - [Bug Report Form (`/report`)](#bug-report-form-report)
-    - [File Attachment](#file-attachment)
-    - [My Reports Page (`/my-reports`)](#my-reports-page-my-reports)
-    - [Admin Reports Page (`/reports`)](#admin-reports-page-reports)
-    - [Report Details Page](#report-details-page)
-    - [Dark Mode](#dark-mode)
-    - [Responsive Navigation](#responsive-navigation)
-  - [Performance Issue: Analysis \& Fix](#performance-issue-analysis--fix)
-    - [What the issue was](#what-the-issue-was)
-    - [How it was detected](#how-it-was-detected)
-    - [The Fix](#the-fix)
-    - [Before vs After](#before-vs-after)
-
----
 
 ## Quick Start
 
