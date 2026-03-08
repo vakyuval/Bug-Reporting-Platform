@@ -295,6 +295,7 @@ export function ReportPage() {
             value={issueType}
             onChange={(e) => setIssueType(e.target.value)}
             onBlur={() => touch('issueType')}
+            color-scheme="light"
           >
             <option value="">Select issue type...</option>
             {ISSUE_TYPES.map((type) => (

@@ -240,6 +240,8 @@ body {
   border-radius: 6px;
   font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--input-bg);
+  color: var(--text);
 }
 
 .form-group input:focus,
