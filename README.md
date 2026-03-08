@@ -27,7 +27,7 @@ A full-stack bug reporting and management system built with **React + TypeScript
 
 ```bash
 git clone https://github.com/vakyuval/Bug-Reporting-Platform.git
-cd bug-reporter
+cd Bug-Reporting-Platform
 ```
 
 ### 2. Install dependencies
