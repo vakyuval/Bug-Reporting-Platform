@@ -67,6 +67,7 @@ body {
 .nav-brand {
   font-size: 1.25rem;
   font-weight: 600;
+  margin-right: auto;
 }
 
 .nav-links {
@@ -402,39 +403,98 @@ body.dark .alert-error {
   transition: 0.2s;
 }
 
+/* Desktop-only / Mobile-only visibility helpers */
+.desktop-only { display: flex; }
+.mobile-only  { display: none; }
+
+/* Mobile menu bottom row: dark toggle + logout */
+.nav-menu-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0 0.25rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+}
+
+.nav-menu-actions .logout-btn {
+  flex: 1;
+  text-align: center;
+}
+
+/* Mobile dropdown — hidden by default, rendered via JS conditional */
+.nav-mobile-menu {
+  display: none;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* Show hamburger */
   .nav-toggle {
     display: flex;
   }
-  
+
+  /* Hide desktop nav links and actions */
   .nav-links {
     display: none;
-    width: 100%;
-    flex-direction: column;
-    gap: 0;
-    padding: 0.5rem 0;
   }
-  
-  .nav.open .nav-links {
-    display: flex;
+
+  .nav-actions {
+    display: none;
   }
-  
+
   .nav {
     flex-wrap: wrap;
     padding: 1rem;
-    gap: 1rem;
+    gap: 0.75rem;
+    position: relative;
   }
-  
-  .nav-links a {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--border);
-  }
-  
-  .btn[style*="marginLeft"] {
+
+  /* Mobile dropdown menu */
+  .nav-mobile-menu {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-    margin-left: 0 !important;
-    margin-top: 0.5rem;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    padding: 0.5rem 0;
+    order: 10;
+  }
+
+  .nav-mobile-menu a {
+    text-decoration: none;
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--border);
+    display: block;
+    transition: color 0.2s;
+  }
+
+  .nav-mobile-menu a:hover,
+  .nav-mobile-menu a.active {
+    color: var(--primary);
+  }
+
+  .nav-mobile-menu-footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .nav-mobile-menu-footer .logout-btn {
+    flex: 1;
+    text-align: center;
+  }
+
+  /* Stack report actions */
+  .report-actions {
+    flex-direction: column;
+  }
+
+  .report-actions .btn {
+    width: 100%;
   }
 }
 
@@ -528,7 +588,7 @@ body.dark .alert-error {
 
   .nav-brand {
     order: 1;
-    flex: 1;
+    flex: 0 0 220px;
   }
 
   .nav-actions {
@@ -610,5 +670,3 @@ body.dark .alert-error {
     font-size: 0.8rem;
   }
 }
-
-

@@ -28,9 +28,11 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      // Try to parse the server's error message before falling back to status text
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.error || `API Error: ${response.status} ${response.statusText}`);
     }
-
+    if (response.status === 204) return undefined as T;
     return response.json();
   }
 

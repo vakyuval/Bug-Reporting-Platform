@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useParams, Link, useNavigate } from 'react-router-dom';
+import { Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 import { Report } from '../types/Report';
@@ -8,10 +8,13 @@ export function ReportDetailsPage() {
   const navigate = useNavigate();
   const { userEmail } = useAuth();
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const backPath = location.pathname.startsWith('/reports/') ? '/reports' : '/my-reports';
 
   if (!userEmail) {
     return <Navigate to="/login" replace />;
@@ -73,8 +76,8 @@ export function ReportDetailsPage() {
           </p>
         )}
       </div>
-      <button className="btn" onClick={() => navigate("/my-reports")}>
-        return
+      <button className="btn btn-secondary" onClick={() => navigate(backPath)}>
+        ← Back
       </button>
         
     </div>

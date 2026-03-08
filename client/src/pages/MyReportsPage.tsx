@@ -11,47 +11,49 @@ const badgeStyle: Record<string, React.CSSProperties> = {
 };
 
 export function MyReportsPage(){
-  const { userEmail} = useAuth();
-  if (!userEmail){
-    return <Navigate to="/login" replace />;
-  }
+  const { userEmail } = useAuth();
   const navigate = useNavigate();
-  const [ reports, setReports] = useState<Report[]>([]);
-  const [loading, setLoadig] = useState(true);
+
+  // All hooks before any early return (Rules of Hooks)
+  const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState('');
+  // ID of report pending confirmation — shows inline confirm UI instead of window.confirm
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fetchReports = useCallback(async () => {
-    setLoadig(true);
+    if (!userEmail) return;
+    setLoading(true);
     setError('');
     try {
       const allReports = await apiClient.getReportsByEmail(userEmail);
       setReports(allReports);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load reports.');
-    } finally{
-      setLoadig(false);
+    } finally {
+      setLoading(false);
     }
-
   }, [userEmail]);
 
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  // Auth guard — after all hooks
+  if (!userEmail) {
+    return <Navigate to="/login" replace />;
+  }
 
-    const confirmed = window.confirm('Are you sure you want to delete this report?');
-    if (!confirmed) return;
-
+  const handleDeleteConfirmed = async (id: string) => {
+    setConfirmDeleteId(null);
+    setDeleteError('');
     try {
       setDeleteLoadingId(id);
-
-      // make sure this exists in apiClient + backend
       await apiClient.deleteReport(id);
-
-      setReports((prev) => prev.filter((report) => report.id !== id));
+      // Remove from local state immediately — no need to re-fetch
+      setReports(prev => prev.filter(r => r.id !== id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete report.');
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete report.');
     } finally {
       setDeleteLoadingId(null);
     }
@@ -65,15 +67,29 @@ export function MyReportsPage(){
     </div>
   );
   if (reports.length === 0) return (
-    <div className="page">
+    <div className="report-page">
       <p>You haven't submitted any reports yet.</p>
       <button className="btn btn-primary" onClick={() => navigate('/report')}>Submit one</button>
     </div>
   );
 
   return (
-    <div className="page">
+    <div className="report-page">
       <h1>My Reports</h1>
+
+      {/* Delete error — inline, doesn't hide the table */}
+      {deleteError && (
+        <div className="alert alert-error" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <span>{deleteError}</span>
+          <button
+            onClick={() => setDeleteError('')}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', color: 'inherit' }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div style={{ overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
           <thead>
@@ -91,45 +107,64 @@ export function MyReportsPage(){
             {reports.map(r => (
               <tr
                 key={r.id}
-                onClick={() => navigate(`/my-reports/${r.id}`)}
-                style={{
-                  borderBottom: '1px solid var(--border)',
-                  cursor: 'pointer',
+                onClick={() => {
+                  if (confirmDeleteId === r.id) return;
+                  navigate(`/my-reports/${r.id}`);
                 }}
+                style={{ borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
               >
                 <td data-label="ID" style={{padding:'8px', fontFamily:'monospace', fontSize:'0.8rem'}}>{r.id.slice(0,8)}...</td>
                 <td data-label="Type" style={{padding:'8px'}}>{r.issueType}</td>
                 <td data-label="Description" style={{padding:'8px'}}>{r.description.length > 80 ? r.description.slice(0,80) + '...' : r.description}</td>
                 <td data-label="Status" style={{padding:'8px'}}><span style={badgeStyle[r.status]}>{r.status}</span></td>
-                <td data-label="CreatedAt" style={{padding:'8px'}}>{new Date(r.createdAt).toLocaleDateString()}</td>
+                <td data-label="CreatedAt" style={{ padding: '8px' }}>
+                  {new Date(r.createdAt).toLocaleString([], {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </td>
                 <td data-label="ApprovedAt" style={{padding:'8px'}}>{r.approvedAt ? new Date(r.approvedAt).toLocaleDateString() : '—'}</td>
-                <td data-label="Actions" style={{padding:'8px', display:'flex', gap:'4px', flexWrap:'wrap'}}>
-                  {r.status === 'NEW' && (
-                    <>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ fontSize: '0.8rem', padding: '4px 10px' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/my-reports/${r.id}`);
-                      }}
-                    >
-                      View
-                    </button>
-
-                    <button
-                      className="btn btn-secondary"
-                      style={{
-                        fontSize: '0.8rem',
-                        padding: '4px 10px',
-                        background: 'var(--danger)',
-                      }}
-                      onClick={(e) => handleDelete(e, r.id)}
-                      disabled={deleteLoadingId === r.id}
-                    >
-                      {deleteLoadingId === r.id ? 'Deleting...' : 'Delete'}
-                    </button>
-                  </>
+                <td data-label="Actions" style={{padding:'8px'}} onClick={e => e.stopPropagation()}>
+                  {confirmDeleteId === r.id ? (
+                    // Inline confirm row — no window.confirm needed
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Delete?</span>
+                      <button
+                        className="btn"
+                        style={{ fontSize: '0.78rem', padding: '3px 10px', background: 'var(--danger)', color: 'white', border: 'none' }}
+                        onClick={() => handleDeleteConfirmed(r.id)}
+                        disabled={deleteLoadingId === r.id}
+                      >
+                        {deleteLoadingId === r.id ? 'Deleting...' : 'Yes'}
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.78rem', padding: '3px 10px' }}
+                        onClick={() => setConfirmDeleteId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                      <button
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.8rem', padding: '4px 10px' }}
+                        onClick={() => navigate(`/my-reports/${r.id}`)}
+                      >
+                        View
+                      </button>
+                      {r.status === 'NEW' && (
+                        <button
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.8rem', padding: '4px 10px', background: 'var(--danger)', color: 'white' }}
+                          onClick={() => setConfirmDeleteId(r.id)}
+                          disabled={deleteLoadingId === r.id}
+                        >
+                          Delete
+                        </button>
+                      )}
+                    </div>
                   )}
                 </td>
               </tr>
@@ -139,5 +174,4 @@ export function MyReportsPage(){
       </div>
     </div>
   );
-
 }

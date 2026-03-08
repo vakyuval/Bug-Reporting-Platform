@@ -72,7 +72,7 @@ function AppLayout() {
           <>
             <li>
               <NavLink to="/report" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
-                Report Bug
+                Bug Report 
               </NavLink>
             </li>
             {userStatus === 'allowed' && (
@@ -121,17 +121,21 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return userEmail ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+function MainWrapper({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  if (location.pathname === '/') return <>{children}</>;
+  return <main className="main">{children}</main>;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <div className="app">
           <AppLayout />
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-          </Routes>
-          <main className="main">
+          <MainWrapper>
             <Routes>
+              <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
@@ -140,7 +144,7 @@ function App() {
               <Route path="/reports/:id" element={<ProtectedRoute><ReportDetailsPage /></ProtectedRoute>} />
               <Route path="/my-reports/:id" element={<ProtectedRoute><ReportDetailsPage /></ProtectedRoute>} />
             </Routes>
-          </main>
+          </MainWrapper>
         </div>
       </AuthProvider>
     </BrowserRouter>

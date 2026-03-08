@@ -200,11 +200,16 @@ export function ReportPage() {
         setCapturingScreenshot(false);
       }, 'image/png');
     } catch (err) {
-      if (err instanceof DOMException && err.name === 'NotAllowedError') {
-        setAttachmentError('Screenshot capture was cancelled.');
+      if (
+        err instanceof DOMException &&
+        (err.name === 'NotAllowedError' || err.name === 'AbortError')
+      ) {
+        // User cancelled screen capture — this is not a real validation error
+        setAttachmentError('');
       } else {
         setAttachmentError('Failed to capture screenshot. Please try again.');
       }
+
       setCapturingScreenshot(false);
     }
   };
