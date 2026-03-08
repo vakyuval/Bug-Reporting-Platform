@@ -11,7 +11,7 @@ import { SignupPage } from './pages/SignupPage';
 import './App.css';
 
 function AppLayout() {
-  const { userStatus, logout, userEmail } = useAuth();
+  const { userStatus, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,25 +41,17 @@ function AppLayout() {
 
   return (
     <nav className={`nav${menuOpen ? ' open' : ''}`}>
+
+      {/* LEFT: brand always far left */}
       <div className="nav-brand">🐛 Bug Reporter</div>
 
-      <button
-        className="nav-toggle"
-        onClick={() => setMenuOpen(o => !o)}
-        aria-label="Toggle navigation"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-
+      {/* DROPDOWN: links + logout — hidden on mobile until hamburger clicked */}
       <ul className="nav-links">
         <li>
           <NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
             Home
           </NavLink>
         </li>
-
         {!userStatus && (
           <li>
             <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
@@ -67,12 +59,11 @@ function AppLayout() {
             </NavLink>
           </li>
         )}
-
         {userStatus && (
           <>
             <li>
               <NavLink to="/report" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
-                Bug Report 
+                Bug Report
               </NavLink>
             </li>
             {userStatus === 'allowed' && (
@@ -89,14 +80,17 @@ function AppLayout() {
                 </NavLink>
               </li>
             )}
+            <li className="nav-logout-item">
+              <button onClick={handleLogout} className="nav-logout-btn">
+                Logout
+              </button>
+            </li>
           </>
         )}
       </ul>
 
-      
-      <div style={{ flex: 1 }} />
-
-      <div className="nav-actions">
+      {/* RIGHT: dark toggle + hamburger — always visible, never in dropdown */}
+      <div className="nav-right">
         <button
           className="dark-toggle"
           onClick={() => setDarkMode(d => !d)}
@@ -105,13 +99,18 @@ function AppLayout() {
         >
           {darkMode ? '☀️' : '🌙'}
         </button>
+
+        <button
+          className="nav-toggle"
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Toggle navigation"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
 
-      {userEmail && (
-        <button onClick={handleLogout} className="btn btn-secondary logout-btn">
-          Logout
-        </button>
-      )}
     </nav>
   );
 }

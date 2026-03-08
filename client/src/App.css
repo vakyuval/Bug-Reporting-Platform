@@ -54,20 +54,29 @@ body {
 .nav {
   background: var(--card-bg);
   border-bottom: 1px solid var(--border);
-  padding: 1rem 2rem;
+  padding: 0.75rem 2rem;
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1rem;
   position: sticky;
   top: 0;
   z-index: 100;
   transition: background 0.25s ease, border-color 0.25s ease;
+  flex-wrap: wrap;
 }
 
 .nav-brand {
   font-size: 1.25rem;
   font-weight: 600;
+  flex-shrink: 0;
   margin-right: auto;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .nav-links {
@@ -76,6 +85,7 @@ body {
   padding: 0;
   display: flex;
   gap: 1.5rem;
+  align-items: center;
 }
 
 .nav-links a {
@@ -118,6 +128,33 @@ body {
 .logout-btn {
   padding: 0.4rem 1rem !important;
   white-space: nowrap;
+}
+
+.nav-logout-item {
+  list-style: none;
+}
+
+.nav-logout-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--danger);
+  padding: 0.5rem 0;
+  width: auto;
+  text-align: left;
+  transition: color 0.2s, border-color 0.2s;
+  line-height: inherit;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-logout-btn:hover {
+  color: #dc2626;
+  border-bottom-color: transparent;
 }
 
 /* Hamburger toggle — hidden on desktop */
@@ -391,7 +428,6 @@ body.dark .alert-error {
   border: none;
   cursor: pointer;
   padding: 4px;
-  margin-left: auto;
 }
 
 .nav-toggle span {
@@ -569,10 +605,10 @@ body.dark .alert-error {
   /* Hide links by default on mobile */
   .nav-links {
     display: none;
+    order: 10;
     width: 100%;
     flex-direction: column;
     gap: 0;
-    order: 4;           /* push below nav bar */
   }
 
   /* Show links when menu is open */
@@ -586,11 +622,6 @@ body.dark .alert-error {
     gap: 0.75rem;
   }
 
-  .nav-brand {
-    order: 1;
-    flex: 0 0 220px;
-  }
-
   .nav-actions {
     order: 3;
     margin-left: 0;
@@ -600,6 +631,16 @@ body.dark .alert-error {
     padding: 0.875rem 0;
     border-bottom: 1px solid var(--border);
     display: block;
+  }
+
+  .nav-logout-btn {
+    display: block;
+    width: 100%;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--border);
+    border-top: none;
+    border-left: none;
+    border-right: none;
   }
 
   /* Stack report actions */
