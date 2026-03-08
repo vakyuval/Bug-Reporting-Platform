@@ -7,18 +7,20 @@ import { ReportDetailsPage } from './pages/ReportDetailsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useState, useEffect } from 'react';
 import { LandingPage } from './pages/LandingPage';
+import { SignupPage } from './pages/SignupPage';
 import './App.css';
 
 function AppLayout() {
   const { userStatus, logout, userEmail } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();  // ← tells us what page we're on
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('darkMode') === 'true';
   });
 
+  
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark');
@@ -34,13 +36,13 @@ function AppLayout() {
     navigate('/login');
   };
 
-  
-  // The landing page has its own nav built in
+  // Landing page has its own nav
   if (location.pathname === '/') return null;
 
   return (
     <nav className={`nav${menuOpen ? ' open' : ''}`}>
       <div className="nav-brand">🐛 Bug Reporter</div>
+
       <button
         className="nav-toggle"
         onClick={() => setMenuOpen(o => !o)}
@@ -50,7 +52,14 @@ function AppLayout() {
         <span></span>
         <span></span>
       </button>
+
       <ul className="nav-links">
+        <li>
+          <NavLink to="/" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
+            Home
+          </NavLink>
+        </li>
+
         {!userStatus && (
           <li>
             <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
@@ -58,6 +67,7 @@ function AppLayout() {
             </NavLink>
           </li>
         )}
+
         {userStatus && (
           <>
             <li>
@@ -82,6 +92,10 @@ function AppLayout() {
           </>
         )}
       </ul>
+
+      
+      <div style={{ flex: 1 }} />
+
       <div className="nav-actions">
         <button
           className="dark-toggle"
@@ -92,6 +106,7 @@ function AppLayout() {
           {darkMode ? '☀️' : '🌙'}
         </button>
       </div>
+
       {userEmail && (
         <button onClick={handleLogout} className="btn btn-secondary logout-btn">
           Logout
@@ -118,9 +133,11 @@ function App() {
           <main className="main">
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
               <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
               <Route path="/my-reports" element={<ProtectedRoute><MyReportsPage /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
+              <Route path="/reports/:id" element={<ProtectedRoute><ReportDetailsPage /></ProtectedRoute>} />
               <Route path="/my-reports/:id" element={<ProtectedRoute><ReportDetailsPage /></ProtectedRoute>} />
             </Routes>
           </main>

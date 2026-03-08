@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
 import { apiClient } from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -66,79 +66,89 @@ export function LoginPage() {
 
   return (
     <div className="login-shell">
-      <div className='login-card'> 
-        <h1>Login</h1>
+      <div className="login-wrapper">
+        <div className='login-card'> 
+          <h1>Login</h1>
 
-        {/* Show error message if there is one */}
-        {error && <div className="alert alert-error">{error}</div>}
+          {/* Show error message if there is one */}
+          {error && <div className="alert alert-error">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="form">
-          {/* Email */}
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => setTouched(t => ({ ...t, email: true }))}
-              disabled={isLoading}
-              required
-            />
-            {emailError && (
-              <span className="validation-hint" style={{ color: 'var(--danger)' }}>
-                {emailError}
-              </span>
-            )}
-          </div>
-          {/* Password */}
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div style={{ position: 'relative' }}>
+          <form onSubmit={handleSubmit} className="form">
+            {/* Email */}
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
               <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onBlur={() => setTouched(t => ({ ...t, password: true }))}
+                id="email"
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setTouched(t => ({ ...t, email: true }))}
                 disabled={isLoading}
-                autoComplete="current-password"
-                style={{ paddingRight: '3rem', width: '100%' }}
+                required
               />
-              {/* Show / hide toggle */}
-              <button
-                type="button"
-                onClick={() => setShowPassword(s => !s)}
-                style={{
-                  position: 'absolute', right: '0.75rem', top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--text-muted)', fontSize: '0.85rem', padding: 0,
-                }}
-                tabIndex={-1}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
+              {emailError && (
+                <span className="validation-hint" style={{ color: 'var(--danger)' }}>
+                  {emailError}
+                </span>
+              )}
             </div>
-            {passwordError && (
-              <span className="validation-hint" style={{ color: 'var(--danger)' }}>
-                {passwordError}
-              </span>
-            )}
-          </div>
+            {/* Password */}
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onBlur={() => setTouched(t => ({ ...t, password: true }))}
+                  disabled={isLoading}
+                  autoComplete="current-password"
+                  style={{ paddingRight: '3rem', width: '100%' }}
+                />
+                {/* Show / hide toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(s => !s)}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: 'var(--text-muted)', fontSize: '0.85rem', padding: 0,
+                  }}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+              {passwordError && (
+                <span className="validation-hint" style={{ color: 'var(--danger)' }}>
+                  {passwordError}
+                </span>
+              )}
+            </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Checking...' : 'Login'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Checking...' : 'Login'}
+            </button>
+          </form>
+        </div>
+        <p style={{ marginTop: '1.25rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '1.2rem' }}>
+          Don't have an account?{' '}
+          <Link to="/signup" style={{ color: 'var(--primary)', fontWeight: 500, textDecoration: 'none' }}>
+            Sign up
+          </Link>
+        </p>
       </div>
+      
     </div>
+    
     );
   }
