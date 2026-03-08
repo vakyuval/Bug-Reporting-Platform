@@ -26,8 +26,8 @@ A full-stack bug reporting and management system built with **React + TypeScript
 ### 1. Clone the repository
 
 ```bash
-git clone 
-cd bug-reporter
+git clone https://github.com/vakyuval/Bug-Reporting-Platform.git
+cd Bug-Reporting-Platform
 ```
 
 ### 2. Install dependencies
@@ -228,12 +228,22 @@ This is ~1,000,000 operations per keystroke causing 100–500ms UI freezes.
 
 ```ts
 // ❌ BEFORE — ran on every single keystroke
-function validateField(field: string, value: string): string {
-  const fakeWork = Array.from({ length: 10_000 }, (_, i) => i)
-    .sort(() => Math.random() - 0.5)
-    .filter(n => n % 2 === 0)
-    .map(n => n * 2);
-  // ... real validation logic
+function validateField(value: string): string[] {
+  const issues: string[] = [];
+
+  const largeArray = Array.from({ length: 10000 }, (_, i) => `item-${i}-${value}`);
+
+  for (let i = 0; i < 100; i++) {
+    largeArray.sort(() => Math.random() - 0.5);
+    largeArray.filter(item => item.includes(value.slice(0, 3)));
+    largeArray.map(item => item.toUpperCase().toLowerCase());
+  }
+
+  if (value.length < 3) {
+    issues.push('Must be at least 3 characters');
+  }
+
+  return issues;
 }
 ```
 
@@ -247,14 +257,20 @@ function validateField(field: string, value: string): string {
 
 ```ts
 // ✅ AFTER — only real validation logic
-function validateField(field: string, value: string): string {
-  if (field === 'description' && value.trim().length < 10)
-    return 'Must be at least 10 characters.';
-  if (field === 'contactName' && value.trim().length < 3)
-    return 'Must be at least 3 characters.';
-  if (field === 'contactEmail' && !validateEmail(value))
-    return 'Please enter a valid email.';
-  return '';
+
+// checking all fields before submiting the report
+const errors: Record<string, string> = {};
+if (touched.issueType && !issueType) {
+errors.issueType = 'Please select an issue type.';
+}
+if (touched.description && description.trim().length < 10) {
+errors.description = 'Must be at least 10 characters.';
+}
+if (touched.contactName && contactName.trim().length < 3) {
+errors.contactName = 'Must be at least 3 characters.';
+}
+if (touched.contactEmail && !validateEmail(contactEmail)) {
+errors.contactEmail = 'Please enter a valid email.';
 }
 ```
 
