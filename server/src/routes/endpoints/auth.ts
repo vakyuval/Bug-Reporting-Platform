@@ -5,11 +5,14 @@ const router = Router();
 
 // POST /api/check-status - check user login status
 router.post('/check-status', (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email ,password } = req.body;
 
   // Validation - checks if email was provided
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
+  }
+  if (!password){
+    return res.status(400).json({ error: 'Password is required' });
   }
 
   // Search for this email in our list

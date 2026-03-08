@@ -35,10 +35,10 @@ class ApiClient {
   }
 
 
-  async checkStatus(email: string): Promise<CheckStatusResponse> {
+  async checkStatus(email: string, password: string): Promise<CheckStatusResponse> {
     return this.request<CheckStatusResponse>('/api/check-status', {
       method: 'POST',
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
   }
 

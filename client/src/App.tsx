@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, NavLink, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { ReportPage } from './pages/ReportPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -6,24 +6,19 @@ import { MyReportsPage } from './pages/MyReportsPage';
 import { ReportDetailsPage } from './pages/ReportDetailsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useState, useEffect } from 'react';
-import { LandingPage } from './pages/LandingPage'
+import { LandingPage } from './pages/LandingPage';
 import './App.css';
 
 function AppLayout() {
   const { userStatus, logout, userEmail } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();  // ← tells us what page we're on
   const [menuOpen, setMenuOpen] = useState(false);
-  const handleLogout = () => {
-    logout();
-    setMenuOpen(false);
-    navigate('/login');
-  };
-  // Dark mode — read saved preference from localStorage on first load
+
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('darkMode') === 'true';
   });
 
-  // Apply/remove 'dark' class on <body> whenever darkMode changes
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark');
@@ -33,9 +28,16 @@ function AppLayout() {
     localStorage.setItem('darkMode', String(darkMode));
   }, [darkMode]);
 
- 
+  const handleLogout = () => {
+    logout();
+    setMenuOpen(false);
+    navigate('/login');
+  };
 
-    
+  
+  // The landing page has its own nav built in
+  if (location.pathname === '/') return null;
+
   return (
     <nav className={`nav${menuOpen ? ' open' : ''}`}>
       <div className="nav-brand">🐛 Bug Reporter</div>
@@ -50,40 +52,52 @@ function AppLayout() {
       </button>
       <ul className="nav-links">
         {!userStatus && (
-        <li>
-          <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Login</NavLink>
-        </li>
+          <li>
+            <NavLink to="/login" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
+              Login
+            </NavLink>
+          </li>
         )}
-        { userStatus && (
-        <>
-          <li><NavLink to="/report" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Report Bug</NavLink></li>
-          {userStatus === 'allowed' && (
-            <li><NavLink to="/my-reports" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>My Reports</NavLink></li>
-          )}
-          {userStatus === 'admin' && (
-            <li><NavLink to="/reports" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>Admin Reports</NavLink></li>
-          )}
-        </>
+        {userStatus && (
+          <>
+            <li>
+              <NavLink to="/report" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
+                Report Bug
+              </NavLink>
+            </li>
+            {userStatus === 'allowed' && (
+              <li>
+                <NavLink to="/my-reports" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
+                  My Reports
+                </NavLink>
+              </li>
+            )}
+            {userStatus === 'admin' && (
+              <li>
+                <NavLink to="/reports" className={({ isActive }) => isActive ? 'active' : ''} onClick={() => setMenuOpen(false)}>
+                  Admin Reports
+                </NavLink>
+              </li>
+            )}
+          </>
+        )}
+      </ul>
+      <div className="nav-actions">
+        <button
+          className="dark-toggle"
+          onClick={() => setDarkMode(d => !d)}
+          aria-label="Toggle dark mode"
+          title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {darkMode ? '☀️' : '🌙'}
+        </button>
+      </div>
+      {userEmail && (
+        <button onClick={handleLogout} className="btn btn-secondary logout-btn">
+          Logout
+        </button>
       )}
-    </ul>
-    <div className="nav-actions">
-      {/* Dark mode toggle button */}
-      <button
-        className="dark-toggle"
-        onClick={() => setDarkMode(d => !d)}
-        aria-label="Toggle dark mode"
-        title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-      >
-        {darkMode ? '☀️' : '🌙'}
-      </button>
-    </div>
-    {userEmail && (
-      <button onClick={handleLogout} className="btn btn-secondary" style={{ marginLeft: 'auto', padding: '0.4rem 1rem' }}>
-        Logout
-      </button>
-    )}
-  </nav>
-    
+    </nav>
   );
 }
 
