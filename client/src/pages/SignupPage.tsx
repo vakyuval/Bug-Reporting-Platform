@@ -25,8 +25,6 @@ export function SignupPage() {
   const passwordError = touched.password && password.length < 6             ? 'Password must be at least 6 characters.' : '';
   const confirmError  = touched.confirm  && confirm !== password             ? 'Passwords do not match.'                 : '';
 
-  const hasErrors = !!nameError || !!emailError || !!passwordError || !!confirmError;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
