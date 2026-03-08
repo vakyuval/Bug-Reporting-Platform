@@ -27,6 +27,3 @@ npm-debug.log*
 
 # Uploads
 uploads/
-
-#db
-server/data/*.db
